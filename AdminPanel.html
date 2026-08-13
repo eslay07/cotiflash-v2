@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    :root{--y:#f1c232;--bg:#f6f7fb;--line:#d9dce3;--ink:#151922;--muted:#667085;--ok:#16a34a;--bad:#dc2626;--b:#2563eb}
+    body{margin:0;font-family:Arial,sans-serif;background:var(--bg);color:var(--ink)}
+    .top{position:sticky;top:0;background:#fff;border-bottom:1px solid var(--line);padding:12px;z-index:5}
+    h2{font-size:18px;margin:0}.sub{font-size:12px;color:var(--muted);margin-top:4px}
+    .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+    .tab{border:1px solid var(--line);border-radius:999px;background:#fff;padding:7px 10px;font-size:12px;font-weight:bold;cursor:pointer}
+    .tab.active{background:var(--y)}
+    .page{display:none;padding:12px}.page.active{display:block}
+    .card{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;margin:10px 0;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+    label{font-size:12px;font-weight:bold;margin-top:9px;display:block}
+    input,select,textarea{width:100%;box-sizing:border-box;border:1px solid #c9ced8;border-radius:9px;padding:9px;margin-top:4px}
+    textarea{resize:vertical}.row{display:flex;gap:8px}.row>div{flex:1}
+    button{border:0;border-radius:10px;padding:10px;margin-top:8px;font-weight:bold;cursor:pointer}
+    .primary{background:var(--y)}.gray{background:#e5e7eb}.blue{background:#dbeafe}.green{background:#dcfce7}.red{background:#fee2e2}.full{width:100%}
+    .chip{display:inline-flex;align-items:center;gap:7px;border-radius:999px;padding:8px 12px;font-size:12px;font-weight:bold;border:1px solid var(--line);margin:4px;background:#fff}
+    .on{background:#dcfce7;color:#14532d}.off{background:#fee2e2;color:#7f1d1d}
+    .stat{background:#f9fafb;border:1px solid var(--line);border-radius:10px;padding:10px;margin:6px 0;font-size:12px}
+    .muted{color:var(--muted);font-size:12px}.mono{font-family:Consolas,monospace;font-size:12px;white-space:pre-wrap}
+    table{width:100%;border-collapse:collapse;font-size:12px}th,td{border-bottom:1px solid #eee;padding:6px;text-align:left}
+  </style>
+</head>
+<body>
+  <div class="top">
+    <h2>⚡ CotiFlash v2 PRO GROQ</h2>
+    <div class="sub" id="topStatus">Cargando...</div>
+    <div class="tabs">
+      <button class="tab active" data-page="inicio">Inicio</button>
+      <button class="tab" data-page="config">Config</button>
+      <button class="tab" data-page="secretos">Secretos</button>
+      <button class="tab" data-page="catalogo">Catálogo</button>
+      <button class="tab" data-page="simular">Simular</button>
+      <button class="tab" data-page="logs">Logs</button>
+    </div>
+  </div>
+
+  <div id="inicio" class="page active">
+    <div class="card">
+      <b>Estado</b>
+      <div id="stats"></div>
+      <button class="primary full" onclick="load()">Actualizar</button>
+    </div>
+    <div class="card">
+      <b>Interruptores</b><br>
+      <span class="chip" id="chipAuto" onclick="toggle('RESPUESTA_AUTO')">Respuesta auto</span>
+      <span class="chip" id="chipIa" onclick="toggle('IA_ENABLED')">IA</span>
+      <span class="chip" id="chipDebug" onclick="toggle('MODO_DEBUG')">Debug</span>
+    </div>
+  </div>
+
+  <div id="config" class="page">
+    <div class="card">
+      <b>Negocio</b>
+      <label>Nombre negocio</label><input id="NOMBRE_NEGOCIO">
+      <label>WhatsApp visible</label><input id="WHATSAPP_NEGOCIO">
+      <label>Email</label><input id="EMAIL_NEGOCIO">
+      <label>Ciudad</label><input id="CIUDAD">
+      <label>Dirección</label><input id="DIRECCION_NEGOCIO">
+      <label>RUC/CI</label><input id="RUC_NEGOCIO">
+      <label>Firma</label><input id="FIRMA_MENSAJES">
+      <div class="row"><div><label>IVA %</label><input id="IVA_PORCENTAJE_DEFECTO" type="number"></div><div><label>Validez días</label><input id="VALIDEZ_COTIZACION_DIAS" type="number"></div></div>
+      <button class="primary full" onclick="saveConfig()">Guardar configuración</button>
+    </div>
+    <div class="card">
+      <b>Groq / WhatsApp / PDF</b>
+      <label>Modelo Groq</label><input id="GROQ_MODEL">
+      <div class="row"><div><label>Máx candidatos IA</label><input id="IA_MAX_CANDIDATOS" type="number"></div><div><label>Timeout ms</label><input id="IA_TIMEOUT_MS" type="number"></div></div>
+      <label>Modo WhatsApp</label><select id="MODO_WHATSAPP"><option>API</option><option>LINKS</option><option>SOLO_REGISTRO</option></select>
+      <label>Versión Graph API</label><input id="GRAPH_API_VERSION">
+      <label>Mensaje sin producto</label><textarea id="MENSAJE_SIN_PRODUCTO" rows="3"></textarea>
+      <label>Mensaje error</label><textarea id="MENSAJE_ERROR" rows="3"></textarea>
+      <button class="primary full" onclick="saveConfig()">Guardar configuración</button>
+    </div>
+    <div class="card">
+      <b>Pagos</b>
+      <label>Modo pago</label><select id="PAGO_MODO"><option>TRANSFERENCIA</option><option>LINK</option><option>MIXTO</option><option>NO_CONFIGURADO</option></select>
+      <label>Banco</label><input id="PAGO_BANCO">
+      <label>Tipo cuenta</label><input id="PAGO_TIPO_CUENTA">
+      <label>Número cuenta</label><input id="PAGO_NUMERO_CUENTA">
+      <label>Titular</label><input id="PAGO_TITULAR">
+      <label>RUC/CI titular</label><input id="PAGO_RUC_CI">
+      <label>Link pago</label><input id="PAGO_LINK_GENERAL">
+      <label>Instrucciones extra</label><textarea id="PAGO_INSTRUCCIONES_EXTRA" rows="2"></textarea>
+      <button class="primary full" onclick="saveConfig()">Guardar pagos</button>
+    </div>
+  </div>
+
+  <div id="secretos" class="page">
+    <div class="card">
+      <b>Credenciales seguras</b>
+      <p class="muted">Se guardan en PropertiesService, no en hojas. El panel nunca las muestra completas.</p>
+      <div id="secretStatus"></div>
+      <label>Groq API Key</label><input id="GROQ_API_KEY" type="password" placeholder="gsk_...">
+      <label>WhatsApp ACCESS_TOKEN</label><input id="WA_ACCESS_TOKEN" type="password">
+      <label>WhatsApp PHONE_NUMBER_ID</label><input id="WA_PHONE_NUMBER_ID">
+      <label>WhatsApp VERIFY_TOKEN</label><input id="WA_VERIFY_TOKEN">
+      <button class="primary full" onclick="saveSecrets()">Guardar secretos</button>
+    </div>
+  </div>
+
+  <div id="catalogo" class="page">
+    <div class="card">
+      <b>Importar catálogo</b>
+      <p class="muted">Pega desde Excel/Sheets. Columnas: nombre, precio, stock, keywords, categoria, costo, stock_min, tipo, alias, relacionados_sku, sku</p>
+      <textarea id="bulk" rows="9" placeholder="nombre	precio	stock	keywords	categoria&#10;Cable USB C	5.50	20	usb,cable,cargador	CABLES"></textarea>
+      <button class="primary full" onclick="importCatalog()">Importar / actualizar</button>
+    </div>
+    <div class="card"><b>Catálogo</b><div id="catalogBox"></div></div>
+  </div>
+
+  <div id="simular" class="page">
+    <div class="card">
+      <b>Simulador</b>
+      <label>Mensaje</label><textarea id="simText" rows="3">Tienen cable HDMI?</textarea>
+      <button class="blue full" onclick="simulate()">Simular flujo completo</button>
+      <button class="gray full" onclick="testGroq()">Probar solo Groq</button>
+      <div id="simResult" class="stat mono">Sin simulación.</div>
+    </div>
+  </div>
+
+  <div id="logs" class="page">
+    <div class="card">
+      <b>Últimas conversaciones</b>
+      <button class="gray full" onclick="loadConversations()">Actualizar conversaciones</button>
+      <div id="convBox"></div>
+    </div>
+    <div class="card">
+      <b>Diagnóstico</b>
+      <button class="gray full" onclick="diagnostic()">Ejecutar diagnóstico</button>
+      <div id="diagBox" class="stat mono"></div>
+    </div>
+  </div>
+
+<script>
+var DATA = {};
+var keys = ['NOMBRE_NEGOCIO','WHATSAPP_NEGOCIO','EMAIL_NEGOCIO','CIUDAD','DIRECCION_NEGOCIO','RUC_NEGOCIO','FIRMA_MENSAJES','IVA_PORCENTAJE_DEFECTO','VALIDEZ_COTIZACION_DIAS','GROQ_MODEL','IA_MAX_CANDIDATOS','IA_TIMEOUT_MS','MODO_WHATSAPP','GRAPH_API_VERSION','MENSAJE_SIN_PRODUCTO','MENSAJE_ERROR','PAGO_MODO','PAGO_BANCO','PAGO_TIPO_CUENTA','PAGO_NUMERO_CUENTA','PAGO_TITULAR','PAGO_RUC_CI','PAGO_LINK_GENERAL','PAGO_INSTRUCCIONES_EXTRA'];
+function byId(id){return document.getElementById(id)}
+function esc(s){return String(s||'').replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]})}
+function bindTabs(){document.querySelectorAll('.tab').forEach(function(b){b.onclick=function(){document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));b.classList.add('active');byId(b.dataset.page).classList.add('active')}})}
+function fail(e){alert('ERROR: '+(e.message||e));}
+function load(){
+  google.script.run.withSuccessHandler(function(d){DATA=d;render()}).withFailureHandler(fail).CFX_API_bootstrap();
+}
+function render(){
+  var c=DATA.config||{}, s=DATA.stats||{};
+  byId('topStatus').textContent=(c.NOMBRE_NEGOCIO||'Mi Negocio')+' · '+s.version;
+  byId('stats').innerHTML='<div class="stat">Productos: <b>'+s.productos+'</b></div><div class="stat">Conversaciones: <b>'+s.conversaciones+'</b></div><div class="stat">Cotizaciones: <b>'+s.cotizaciones+'</b></div><div class="stat">Errores: <b>'+s.errores+'</b></div>';
+  keys.forEach(function(k){ if(byId(k)) byId(k).value = c[k] || ''; });
+  chip('chipAuto',c.RESPUESTA_AUTO==='SI','Respuesta auto');
+  chip('chipIa',c.IA_ENABLED==='SI','IA');
+  chip('chipDebug',c.MODO_DEBUG==='SI','Debug');
+  var sec=c.SECRETS||{};
+  byId('secretStatus').innerHTML='<div class="stat">Groq: <b>'+(sec.GROQ_API_KEY&&sec.GROQ_API_KEY.configured?sec.GROQ_API_KEY.masked:'NO')+'</b></div><div class="stat">WA Token: <b>'+(sec.WA_ACCESS_TOKEN&&sec.WA_ACCESS_TOKEN.configured?sec.WA_ACCESS_TOKEN.masked:'NO')+'</b></div><div class="stat">Phone ID: <b>'+(sec.WA_PHONE_NUMBER_ID&&sec.WA_PHONE_NUMBER_ID.configured?sec.WA_PHONE_NUMBER_ID.masked:'NO')+'</b></div><div class="stat">Verify: <b>'+(sec.WA_VERIFY_TOKEN&&sec.WA_VERIFY_TOKEN.configured?sec.WA_VERIFY_TOKEN.masked:'NO')+'</b></div>';
+  renderCatalog(DATA.catalog||[]);
+  renderConversations(DATA.conversations||[]);
+}
+function chip(id,on,label){var el=byId(id);el.className='chip '+(on?'on':'off');el.textContent=label+' '+(on?'ON':'OFF')}
+function saveConfig(){var obj={}; keys.forEach(function(k){ if(byId(k)) obj[k]=byId(k).value; }); google.script.run.withSuccessHandler(function(){alert('Configuración guardada');load()}).withFailureHandler(fail).CFX_API_saveConfig(obj)}
+function saveSecrets(){var obj={GROQ_API_KEY:byId('GROQ_API_KEY').value,WA_ACCESS_TOKEN:byId('WA_ACCESS_TOKEN').value,WA_PHONE_NUMBER_ID:byId('WA_PHONE_NUMBER_ID').value,WA_VERIFY_TOKEN:byId('WA_VERIFY_TOKEN').value}; google.script.run.withSuccessHandler(function(){alert('Secretos guardados');['GROQ_API_KEY','WA_ACCESS_TOKEN','WA_PHONE_NUMBER_ID','WA_VERIFY_TOKEN'].forEach(k=>byId(k).value='');load()}).withFailureHandler(fail).CFX_API_saveSecrets(obj)}
+function toggle(k){google.script.run.withSuccessHandler(load).withFailureHandler(fail).CFX_API_toggle(k)}
+function importCatalog(){google.script.run.withSuccessHandler(function(r){alert('Nuevos: '+r.created+' | Actualizados: '+r.updated+' | Errores: '+r.errors.length);load()}).withFailureHandler(fail).CFX_API_importCatalog(byId('bulk').value)}
+function renderCatalog(list){var h='<table><tr><th>SKU</th><th>Producto</th><th>Precio</th><th>Stock</th></tr>';list.forEach(function(p){h+='<tr><td>'+esc(p.sku)+'</td><td>'+esc(p.nombre)+'</td><td>$'+Number(p.precio||0).toFixed(2)+'</td><td>'+esc(p.stock)+'</td></tr>'});h+='</table>';byId('catalogBox').innerHTML=h}
+function simulate(){google.script.run.withSuccessHandler(function(r){byId('simResult').textContent=JSON.stringify(r,null,2);load()}).withFailureHandler(fail).CFX_API_simulate(byId('simText').value)}
+function testGroq(){google.script.run.withSuccessHandler(function(r){byId('simResult').textContent=JSON.stringify(r,null,2)}).withFailureHandler(fail).CFX_API_testGroq(byId('simText').value)}
+function loadConversations(){google.script.run.withSuccessHandler(renderConversations).withFailureHandler(fail).CFX_API_getConversations(30)}
+function renderConversations(list){var h='<table><tr><th>Fecha</th><th>Cliente</th><th>Mensaje</th><th>Intención</th></tr>';(list||[]).forEach(function(x){h+='<tr><td>'+esc(x.FECHA)+'</td><td>'+esc(x.NOMBRE)+'</td><td>'+esc(String(x.MENSAJE_ENTRANTE||'').substring(0,70))+'</td><td>'+esc(x.INTENCION)+'</td></tr>'});h+='</table>';byId('convBox').innerHTML=h}
+function diagnostic(){google.script.run.withSuccessHandler(function(r){byId('diagBox').textContent=JSON.stringify(r,null,2)}).withFailureHandler(fail).CFX_API_diagnostic()}
+window.onload=function(){bindTabs();load()}
+</script>
+</body>
+</html>

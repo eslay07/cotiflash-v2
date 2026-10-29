@@ -1,5 +1,8 @@
 # CotiFlash v2
 
+[Guía visual actual con capturas (PDF)](docs/portafolio/Guia_Visual_Actual.pdf) · [Procedencia y alcance de las muestras](docs/portafolio/README.md)
+
+
 ## Lectura rápida para evaluar el proyecto
 
 Automatiza el recorrido de solicitud por WhatsApp, búsqueda de productos y cotización PDF desde Google Sheets.
